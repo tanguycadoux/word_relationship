@@ -1,0 +1,25 @@
+{% extends 'lexicon/base.html' %}
+
+{% block title %}Lexicon{% endblock title %}
+
+{% block content %}
+    <h1>{{ word }}</h1>
+
+    <p>Langue : {{ word.language }}</p>
+    <p>Définition : {{ word.definition }}</p>
+    <p>Parent : 
+        {% if word.parent %}
+            <a href="{% url 'word_detail' word.parent.id %}" class="text-blue-500 hover:underline">
+                {{ word.parent }}
+            </a>
+        {% else %}
+            /
+        {% endif %}
+    </p>
+
+    {% url 'update_word' word.id as url %}
+    {% include 'lexicon/snippets/anchor_with_icon.html' with url=url icon='edit' text='Modifier' %}
+
+    {% url 'home' as home_url %}
+    {% include 'lexicon/snippets/anchor_with_icon.html' with url=home_url icon='arrow_back' text='Retour' %}
+{% endblock content %}

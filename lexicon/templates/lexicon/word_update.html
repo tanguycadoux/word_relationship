@@ -1,0 +1,16 @@
+{% extends 'lexicon/base.html' %}
+
+{% block title %}Modifier un mot{% endblock title %}
+
+{% block content %}
+    <h1>Modifier un mot</h1>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Enregistrer</button>
+    </form>
+
+    {% url 'home' as home_url %}
+    {% include 'lexicon/snippets/anchor_with_icon.html' with url=home_url icon='arrow_back' text='Retour' %}
+{% endblock content %}

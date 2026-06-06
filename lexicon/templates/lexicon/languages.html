@@ -1,0 +1,16 @@
+{% extends 'lexicon/base.html' %}
+
+{% block title %}Lexicon - Langues{% endblock title %}
+
+{% block content %}
+    <h1>Liste des langues</h1>
+
+    <ul class="list-disc list-inside ml-4">
+        {% for language in languages %}
+            <li>{{ language.name }}</li>
+        {% endfor %}
+    </ul>
+
+    {% url 'add_language' as add_language_url %}
+    {% include 'lexicon/snippets/anchor_button.html' with url=add_language_url icon='add' text='Ajouter une langue' %}
+{% endblock content %}

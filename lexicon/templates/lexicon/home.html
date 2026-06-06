@@ -1,0 +1,175 @@
+{% extends 'lexicon/base.html' %}
+
+{% block title %}Lexicon{% endblock title %}
+
+{% block content %}
+    <h1>Bienvenue sur Lexicon</h1>
+
+    {% url 'add_word' as add_word_url %}
+    {% include 'lexicon/snippets/anchor_button.html' with url=add_word_url icon='add' text='Ajouter un mot' %}
+
+    <svg id="word-cloud" class="border" width="800" height="400">
+        <!-- Les mots seront ajoutés ici via JavaScript -->
+    </svg>
+
+    <script>
+        function drawLine(x1, y1, x2, y2, debug=false) {
+            const line = drawSimpleLine(x1, y1, x2, y2);
+
+            if (debug) {
+                const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                const circleIn = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                const circleOut = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+
+                circleIn.setAttribute('cx', x1);
+                circleIn.setAttribute('cy', y1);
+                circleIn.setAttribute('r', 5);
+                circleIn.setAttribute('fill', 'red');
+
+                circleOut.setAttribute('cx', x2);
+                circleOut.setAttribute('cy', y2);
+                circleOut.setAttribute('r', 5);
+                circleOut.setAttribute('fill', 'blue');
+
+                g.appendChild(line);
+                g.appendChild(circleIn);
+                g.appendChild(circleOut);
+
+                return g;
+            }
+            return line;
+        }
+
+        function drawSimpleLine(x1, y1, x2, y2, debug=false) {
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+
+            line.setAttribute('x1', x1);
+            line.setAttribute('y1', y1);
+            line.setAttribute('x2', x2);
+            line.setAttribute('y2', y2);
+            line.setAttribute('stroke', 'black');
+
+            return line;
+        }
+
+        function drawNode(x, y, label, color='black') {
+            const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+
+            g.setAttribute('transform', `translate(${x}, ${y})`);
+
+            rect.setAttribute("x", -BOX_W/2);
+            rect.setAttribute("y", -BOX_H/2);
+            rect.setAttribute("width", BOX_W);
+            rect.setAttribute("height", BOX_H);
+            rect.setAttribute("fill", "white");
+            rect.setAttribute("stroke", color);
+            rect.setAttribute("stroke-width", 2);
+
+            text.setAttribute("text-anchor", "middle");
+            text.setAttribute("dominant-baseline", "middle");
+            text.style.userSelect = 'none';
+            text.style.pointerEvents = 'none';
+            text.textContent = label;
+
+            g.appendChild(rect);
+            g.appendChild(text);
+
+            return g;
+        }
+
+        function svgPoint(e) {
+            const rect = svg.getBoundingClientRect();
+            const scaleX = svg.viewBox.baseVal.width  ? svg.viewBox.baseVal.width  / rect.width  : 1;
+            const scaleY = svg.viewBox.baseVal.height ? svg.viewBox.baseVal.height / rect.height : 1;
+            return {
+                x: (e.clientX - rect.left) * scaleX,
+                y: (e.clientY - rect.top)  * scaleY,
+            };
+        }
+
+        function redraw() {
+            svg.innerHTML = '';
+            
+            data.links.forEach(link => {
+                const s = byId[link.source], t = byId[link.target];
+                if (!s || !t) return;
+                
+                const line = drawLine(s.x + BOX_W/2, s.y, t.x - BOX_W/2, t.y, debug=true);
+                svg.appendChild(line);
+            });
+
+            data.nodes.forEach(node => {
+                const box = drawNode(node.x, node.y, node.label, node.language ? colorsPerLanguage[node.language.id] : 'black');
+
+                box.addEventListener('mousedown', (e) => {
+                    dragging = node;
+                    const pt = svgPoint(e);
+                    offset.x = pt.x - node.x;
+                    offset.y = pt.y - node.y;
+                    e.preventDefault();
+                });
+
+                svg.appendChild(box);
+            });
+        }
+        
+        const data = {{ graph_data|safe }};
+        const svg = document.getElementById('word-cloud');
+        const W = svg.clientWidth, H = svg.clientHeight;
+        const BOX_W = 100, BOX_H = 40;
+
+        const byId = Object.fromEntries(data.nodes.map(n => [n.id, n]));
+        const languages = new Map(data.nodes
+            .filter(n => n.language)
+            .map(n => [n.language.id, n.language])
+        );
+
+        let dragging = null, offset = {x: 0, y: 0};
+
+        let colorsPerLanguage = {};
+        let nbLanguages = languages.size;
+        let angleOffset = Math.random() * 360;
+        let languagesArray = Array.from(languages.values());
+        for (let i = 0; i < nbLanguages; i++) {
+            let angle = angleOffset + (i / nbLanguages) * 360;
+            let lang = languagesArray[i];
+            colorsPerLanguage[lang.id] = `hsl(${angle}, 70%, 80%)`;
+        }
+
+        console.info(colorsPerLanguage);
+        
+        data.nodes.forEach(node => {
+            const xPos = BOX_W/2 + Math.random() * (W - BOX_W);
+            const yPos = BOX_H/2 + Math.random() * (H - BOX_H);
+            node.x = xPos;
+            node.y = yPos;
+        });
+
+        svg.addEventListener('mousemove', (e) => {
+            if (!dragging) return;
+            const pt = svgPoint(e);
+            dragging.x = pt.x - offset.x;
+            dragging.y = pt.y - offset.y;
+            redraw();
+        });
+
+        svg.addEventListener('mouseup', () => {
+            dragging = null;
+        });
+
+        redraw();        
+    </script>
+
+    <ul class="list-disc list-inside ml-4">
+        {% for word in words %}
+            <li>
+                <a href="{% url 'word_detail' word.id %}" class="text-blue-500 hover:underline">
+                    {{ word.word }}
+                </a>
+                ({{ word.language.name }})
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock content %}

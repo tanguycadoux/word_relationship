@@ -1,0 +1,28 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>
+        {% block title %}Lexicon{% endblock title %}
+    </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Rounded" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-orange-50">
+    <main class="p-4">
+        {% block content %}{% endblock content %}
+    </main>
+    <div class="fixed bottom-4 right-4 bg-white border border-2 border-red-500 shadow-lg p-2">
+        <p>Utilitaires</p>
+
+        <div class="flex flex-col gap-2 mt-2">
+            {% url 'home' as home_url %}
+            {% include 'lexicon/snippets/anchor_with_icon.html' with url=home_url icon='home' text='Accueil' %}
+    
+            {% url 'languages' as languages_url %}
+            {% include 'lexicon/snippets/anchor_with_icon.html' with url=languages_url icon='language' text='Liste des langues' %}
+        </div>
+    </div>
+</body>
+</html>
