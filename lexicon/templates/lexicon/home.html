@@ -31,9 +31,7 @@
                 circleOut.setAttribute('r', 5);
                 circleOut.setAttribute('fill', 'blue');
 
-                g.appendChild(line);
-                g.appendChild(circleIn);
-                g.appendChild(circleOut);
+                g.append(line, circleIn, circleOut);
 
                 return g;
             }
@@ -73,8 +71,7 @@
             text.style.pointerEvents = 'none';
             text.textContent = label;
 
-            g.appendChild(rect);
-            g.appendChild(text);
+            g.append(rect, text);
 
             return g;
         }
@@ -97,7 +94,7 @@
                 if (!s || !t) return;
                 
                 const line = drawLine(s.x + BOX_W/2, s.y, t.x - BOX_W/2, t.y, debug=true);
-                svg.appendChild(line);
+                svg.append(line);
             });
 
             data.nodes.forEach(node => {
@@ -115,6 +112,65 @@
             });
         }
         
+        function initNodesPositionsRandom(nodes) {
+            nodes.forEach(node => {
+                const xPos = BOX_W/2 + Math.random() * (W - BOX_W);
+                const yPos = BOX_H/2 + Math.random() * (H - BOX_H);
+                node.x = xPos;
+                node.y = yPos;
+            });
+        }
+
+        function initNodesPositionsGrouped(nodes, links) {
+            const components = getConnectedComponents(nodes, links);
+            const nbComponents = components.length;
+            const verticalSpacing = H / nbComponents;
+
+            let y = verticalSpacing / 2;
+            components.forEach(component => {
+                let x = BOX_W/2;
+                component.forEach(id => {
+                    const node = byId[id];
+                    node.x = x;
+                    node.y = y;
+                    x += BOX_W + 20;
+                });
+                y += verticalSpacing;
+            });
+        }
+
+        function initNodesPositions(nodes, links) {
+            initNodesPositionsGrouped(nodes, links);
+        }
+
+        function getConnectedComponents(nodes, links) {
+            const neighbors = new Map(nodes.map(n => [n.id, new Set()]));
+            links.forEach(({ source, target }) => {
+                neighbors.get(source)?.add(target);
+                neighbors.get(target)?.add(source);
+            });
+
+            const visited = new Set();
+            const components = [];
+
+            nodes.forEach(node => {
+                if (visited.has(node.id)) return;
+
+                const component = [];
+                const queue = [node.id];
+                while (queue.length) {
+                    const id = queue.shift();
+                    if (visited.has(id)) continue;
+                    visited.add(id);
+                    component.push(id);
+                    neighbors.get(id).forEach(n => queue.push(n));
+                }
+                components.push(component);
+            });
+
+            return components;
+        }
+
         const data = {{ graph_data|safe }};
         const svg = document.getElementById('word-cloud');
         const W = svg.clientWidth, H = svg.clientHeight;
@@ -139,13 +195,7 @@
         }
 
         console.info(colorsPerLanguage);
-        
-        data.nodes.forEach(node => {
-            const xPos = BOX_W/2 + Math.random() * (W - BOX_W);
-            const yPos = BOX_H/2 + Math.random() * (H - BOX_H);
-            node.x = xPos;
-            node.y = yPos;
-        });
+        initNodesPositions(data.nodes, data.links);
 
         svg.addEventListener('mousemove', (e) => {
             if (!dragging) return;
