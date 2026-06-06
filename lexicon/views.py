@@ -17,8 +17,7 @@ class home(ListView):
 
         nodes = [{"id": w.id, "label": w.word, "language": {"id": w.language.id, "name": w.language.name}} for w in words]
 
-        links = [{"source": w.parent.id, "target": w.id} for w in words if w.parent]
-        
+        links = [{"source": parent.id, "target": w.id} for w in words for parent in w.parents.all()]
         context = super().get_context_data(**kwargs)
         context['graph_data'] = json.dumps({ "nodes": nodes, "links": links })
         return context
