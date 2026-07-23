@@ -1,4 +1,5 @@
 {% extends 'lexicon/base.html' %}
+{% load static %}
 
 {% block title %}Lexicon{% endblock title %}
 
@@ -7,13 +8,13 @@
 
     <p>Langue : {{ word.language }}</p>
     <p>Définition : {{ word.definition }}</p>
-    <p>Parent : 
+    <p>Parent :
         {% if word.parent %}
-            <a href="{% url 'word_detail' word.parent.id %}" class="text-blue-500 hover:underline">
-                {{ word.parent }}
-            </a>
+        <a href="{% url 'word_detail' word.parent.id %}" class="text-blue-500 hover:underline">
+            {{ word.parent }}
+        </a>
         {% else %}
-            /
+        /
         {% endif %}
     </p>
 
@@ -22,4 +23,47 @@
 
     {% url 'home' as home_url %}
     {% include 'lexicon/snippets/anchor_with_icon.html' with url=home_url icon='arrow_back' text='Retour' %}
+
+    <div id="graph-container" class="w-full h-96 border border-2 border-red-500 bg-white relative"></div>
+
+    <script defer type="module">
+        import { Graph } from "{% static 'lexicon/js/node-graph/Graph.js' %}";
+        import { DebugGrid } from "{% static 'lexicon/js/node-graph/core/DebugGrid.js' %}";
+        import { DebugControls } from "{% static 'lexicon/js/node-graph/core/DebugControls.js' %}";
+
+        const node1 = {
+            id: 1,
+            x: 0,
+            y: 0,
+            width: 100,
+            height: 50,
+        };
+        const node2 = {
+            id: 2,
+            x: 150,
+            y: 50,
+            width: 100,
+            height: 50,
+        };
+
+        const nodes = [node1, node2];
+        const links = [
+            { from: node1.id, to: node2.id },
+        ];
+
+        const container = document.getElementById('graph-container');
+        const graph = new Graph(container, { nodes: nodes, links: links });
+
+        // const grid = new DebugGrid(graph._viewportGroup, { spacing: 50, extent: 2000 });
+        // const controls = new DebugControls(container, graph._viewport);
+
+        // grid.render();
+        // controls.render();
+
+        graph.centerOnNode(node1.id);
+
+        graph.addNode({ id: 3, x: 300, y: -100, width: 100, height: 50 });
+        graph.addLink({ from: 2, to: 3 });
+        graph.removeNode(2);
+    </script>
 {% endblock content %}
