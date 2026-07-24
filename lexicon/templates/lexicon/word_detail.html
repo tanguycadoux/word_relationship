@@ -32,14 +32,14 @@
         import { DebugControls } from "{% static 'lexicon/js/node-graph/core/DebugControls.js' %}";
 
         const node1 = {
-            id: 1,
+            id: '1',
             x: 0,
             y: 0,
             width: 100,
             height: 50,
         };
         const node2 = {
-            id: 2,
+            id: '2',
             x: 150,
             y: 50,
             width: 100,
@@ -61,9 +61,5 @@
         // controls.render();
 
         graph.centerOnNode(node1.id);
-
-        graph.addNode({ id: 3, x: 300, y: -100, width: 100, height: 50 });
-        graph.addLink({ from: 2, to: 3 });
-        graph.removeNode(2);
     </script>
 {% endblock content %}

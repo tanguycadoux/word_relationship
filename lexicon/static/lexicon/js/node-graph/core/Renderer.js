@@ -55,18 +55,27 @@ export class Renderer {
     _bindGraphEvents() {
         this._onNodeAdded = (e) => this._handleNodeAdded(e);
         this._onNodeRemoved = (e) => this._handleNodeRemoved(e);
+        this._onNodeChanged = (e) => this._handleNodeChanged(e);
         this._onLinkAdded = (e) => this._handleLinkAdded(e);
         this._onLinkRemoved = (e) => this._handleLinkRemoved(e);
 
         this._graphState.addEventListener('nodeAdded', this._onNodeAdded);
         this._graphState.addEventListener('nodeRemoved', this._onNodeRemoved);
+        this._graphState.addEventListener('nodeChanged', this._onNodeChanged);
         this._graphState.addEventListener('linkAdded', this._onLinkAdded);
         this._graphState.addEventListener('linkRemoved', this._onLinkRemoved);
     }
 
     _handleNodeAdded(event) { this._createNodeElement(event.detail); }
     _handleNodeRemoved(event) { this._removeNodeElement(event.detail.id); }
-    _handleNodeChanged(event) { } // pour plus tard : déplacement/redimensionnement
+    _handleNodeChanged(event) {
+        const node = event.detail;
+        const el = this._nodeElements.get(node.id);
+        if (!el) return;
+
+        el.setAttribute('transform', `translate(${node.x}, ${node.y})`);
+        this._updateLinksForNode(node.id);
+    }
 
     _handleLinkAdded(event) { this._createLinkElement(event.detail); }
     _handleLinkRemoved(event) { this._removeLinkElement(event.detail); }
@@ -76,6 +85,7 @@ export class Renderer {
     _createNodeElement(node) {
         const el = document.createElementNS(SVG_NS, 'g');
         el.id = `node-${node.id}`;
+        el.dataset.nodeId = node.id;
         el.classList.add('node-graph-node');
         el.setAttribute('transform', `translate(${node.x}, ${node.y})`);
 
@@ -112,15 +122,55 @@ export class Renderer {
         }
 
         const el = document.createElementNS(SVG_NS, 'line');
-        el.setAttribute('x1', sourceNode.x);
-        el.setAttribute('y1', sourceNode.y);
-        el.setAttribute('x2', targetNode.x);
-        el.setAttribute('y2', targetNode.y);
+        const endpoints = this._getLinkEndpoints(link);
+        if (!endpoints) {
+            console.warn(`Cannot create link element: invalid endpoints.`);
+            return;
+        }
+
+        el.setAttribute('x1', endpoints.x1);
+        el.setAttribute('y1', endpoints.y1);
+        el.setAttribute('x2', endpoints.x2);
+        el.setAttribute('y2', endpoints.y2);
         el.setAttribute('stroke', '#888');
         el.setAttribute('stroke-width', 2);
 
         this._linksGroup.append(el);
         this._linkElements.set(linkKey(link.from, link.to), el);
+    }
+    _getLinkEndpoints(link) {
+        const fromNode = this._graphState.getNode(link.from);
+        const toNode = this._graphState.getNode(link.to);
+        if (!fromNode || !toNode) return null;
+
+        return {
+            x1: fromNode.x + fromNode.width / 2, y1: fromNode.y + fromNode.height / 2,
+            x2: toNode.x + toNode.width / 2, y2: toNode.y + toNode.height / 2,
+        };
+    }
+    _updateLinksForNode(nodeId) {
+        const relatedLinks = this._graphState.getAllLinks().filter(
+            (link) => link.from === nodeId || link.to === nodeId
+        );
+        for (const link of relatedLinks) {
+            this._updateLinkElement(link);
+        }
+    }
+    _updateLinkElement(link) {
+        const el = this._linkElements.get(linkKey(link.from, link.to));
+        if (!el) return;
+
+        const fromNode = this._graphState.getNode(link.from);
+        const toNode = this._graphState.getNode(link.to);
+        if (!fromNode || !toNode) return;
+
+        const endpoints = this._getLinkEndpoints(link);
+        if (!endpoints) return;
+
+        el.setAttribute('x1', endpoints.x1);
+        el.setAttribute('y1', endpoints.y1);
+        el.setAttribute('x2', endpoints.x2);
+        el.setAttribute('y2', endpoints.y2);
     }
     _removeLinkElement(link) {
         const key = linkKey(link.from, link.to);
@@ -134,6 +184,7 @@ export class Renderer {
     destroy() {
         this._graphState.removeEventListener('nodeAdded', this._onNodeAdded);
         this._graphState.removeEventListener('nodeRemoved', this._onNodeRemoved);
+        this._graphState.removeEventListener('nodeChanged', this._onNodeChanged);
         this._graphState.removeEventListener('linkAdded', this._onLinkAdded);
         this._graphState.removeEventListener('linkRemoved', this._onLinkRemoved);
     }

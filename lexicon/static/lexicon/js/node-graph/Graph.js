@@ -1,7 +1,7 @@
 import { Viewport } from './core/Viewport.js';
 import { GraphState } from './core/GraphState.js';
 import { Renderer } from './core/Renderer.js';
-// import { InteractionManager } from './core/InteractionManager.js'; // à venir
+import { InteractionManager } from './core/InteractionManager.js'; // à venir
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -15,6 +15,7 @@ export class Graph {
      * @param {(node: Node) => void} [options.onNodeMove] - callback appli, pour plus tard
      */
     constructor(container, options = {}) {
+        this._container = container;
         this._svg = null;
         this._viewportGroup = null;
         this._viewport = null;
@@ -46,7 +47,8 @@ export class Graph {
         this._renderer = new Renderer(this._viewportGroup, this._graphState, {
             renderNode: options.renderNode,
         });
-    }       // instancie Viewport, GraphState, Renderer (+ InteractionManager plus tard)
+        this._interactionManager = new InteractionManager(this._container, this._viewport, this._graphState);
+    }
 
     // --- API publique : données ---
 
@@ -74,6 +76,8 @@ export class Graph {
     /** Désabonne tout, détruit Renderer/Viewport, retire le SVG du DOM. */
     destroy() {
         this._renderer.destroy();
+        this._interactionManager.destroy();
+
         this._svg.remove();
 
         this._svg = null;
@@ -81,5 +85,6 @@ export class Graph {
         this._viewport = null;
         this._graphState = null;
         this._renderer = null;
+        this._interactionManager = null;
     }
 }

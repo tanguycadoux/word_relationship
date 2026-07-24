@@ -65,6 +65,16 @@ export class GraphState extends EventTarget {
         return Array.from(this.nodes.values());
     }
 
+    moveNode(id, x, y) {
+        const node = this.nodes.get(id);
+        if (!node) return;
+
+        node.x = x;
+        node.y = y;
+
+        this._notifyChange('nodeChanged', { detail: node });
+    }
+
     /**
      * @typedef {object} Link
      * @property {string} from - Source node id
@@ -83,7 +93,7 @@ export class GraphState extends EventTarget {
         this.links.set(key, link);
         this._notifyChange('linkAdded', { detail: link });
     }
-    removeLink({from, to}) {
+    removeLink({ from, to }) {
         const key = linkKey(from, to);
         const link = this.links.get(key);
 
