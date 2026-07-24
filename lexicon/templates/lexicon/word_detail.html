@@ -28,31 +28,19 @@
 
     <script defer type="module">
         import { Graph } from "{% static 'lexicon/js/node-graph/Graph.js' %}";
-        import { DebugGrid } from "{% static 'lexicon/js/node-graph/core/DebugGrid.js' %}";
-        import { DebugControls } from "{% static 'lexicon/js/node-graph/core/DebugControls.js' %}";
+        // import { DebugGrid } from "{% static 'lexicon/js/node-graph/core/DebugGrid.js' %}";
+        // import { DebugControls } from "{% static 'lexicon/js/node-graph/core/DebugControls.js' %}";
 
-        const node1 = {
-            id: '1',
-            x: 0,
-            y: 0,
-            width: 100,
-            height: 50,
-        };
-        const node2 = {
-            id: '2',
-            x: 150,
-            y: 50,
-            width: 100,
-            height: 50,
-        };
+        const graphData = {{ graph_data|safe }};
+        console.log("Graph data:", graphData);
 
-        const nodes = [node1, node2];
-        const links = [
-            { from: node1.id, to: node2.id },
-        ];
+        const nodes = graphData.nodes;
+        const edges = graphData.edges.map(edge => ({
+            from: edge.source, to: edge.target
+        }));
 
         const container = document.getElementById('graph-container');
-        const graph = new Graph(container, { nodes: nodes, links: links });
+        const graph = new Graph(container, { nodes: nodes, links: edges });
 
         // const grid = new DebugGrid(graph._viewportGroup, { spacing: 50, extent: 2000 });
         // const controls = new DebugControls(container, graph._viewport);
@@ -60,6 +48,9 @@
         // grid.render();
         // controls.render();
 
-        graph.centerOnNode(node1.id);
+        const centerNode = nodes.find(n => n.data.is_center);
+        if (centerNode) {
+            graph.centerOnNode(centerNode.id);
+        }
     </script>
 {% endblock content %}
