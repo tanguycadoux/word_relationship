@@ -83,20 +83,22 @@ export class Renderer {
     // --- Création/suppression des éléments DOM : nœuds ---
 
     _createNodeElement(node) {
-        const el = document.createElementNS(SVG_NS, 'g');
-        el.id = `node-${node.id}`;
-        el.dataset.nodeId = node.id;
-        el.classList.add('node-graph-node');
-        el.setAttribute('transform', `translate(${node.x}, ${node.y})`);
+        const group = document.createElementNS(SVG_NS, 'g');
+        group.id = `node-${node.id}`;
+        group.dataset.nodeId = node.id;
+        group.classList.add('node-graph-node');
+        group.setAttribute('transform', `translate(${node.x}, ${node.y})`);
+        group.style.userSelect = 'none';
+        group.style.webkitUserSelect = 'none';
 
         if (this._options.renderNode) {
-            this._options.renderNode(node, el);
+            this._options.renderNode(node, group);
         } else {
-            this._renderDefaultNode(node, el);
+            this._renderDefaultNode(node, group);
         }
 
-        this._nodesGroup.append(el);
-        this._nodeElements.set(node.id, el);
+        this._nodesGroup.append(group);
+        this._nodeElements.set(node.id, group);
     }
     _renderDefaultNode(node, el) {
         const rect = document.createElementNS(SVG_NS, 'rect');
@@ -105,6 +107,14 @@ export class Renderer {
         rect.setAttribute('fill', '#ccc');
         rect.setAttribute('stroke', '#888');
         el.appendChild(rect);
+
+        const text = document.createElementNS(SVG_NS, 'text');
+        text.setAttribute('x', node.width / 2);
+        text.setAttribute('y', node.height / 2);
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('dominant-baseline', 'middle');
+        text.textContent = node.data?.label ?? node.id;
+        el.appendChild(text);
     }
     _removeNodeElement(nodeId) {
         this._nodeElements.get(nodeId)?.remove();
