@@ -24,7 +24,7 @@
     {% url 'home' as home_url %}
     {% include 'lexicon/snippets/anchor_with_icon.html' with url=home_url icon='arrow_back' text='Retour' %}
 
-    <div id="graph-container" class="w-full h-96 border border-2 border-red-500 bg-white relative"></div>
+    <div id="graph-container" class="w-full h-96 border border-1 border-gray-400 rounded bg-white relative"></div>
 
     <script defer type="module">
         import { Graph } from "{% static 'lexicon/js/node-graph/Graph.js' %}";
@@ -35,9 +35,9 @@
         console.log("Graph data:", graphData);
 
         const nodes = graphData.nodes;
-        const edges = graphData.edges.map(edge => ({
-            from: edge.source, to: edge.target
-        }));
+        const edges = graphData.edges;
+
+        console.log(edges);
 
         const container = document.getElementById('graph-container');
         const graph = new Graph(container, { nodes: nodes, links: edges });

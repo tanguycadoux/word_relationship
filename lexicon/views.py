@@ -11,8 +11,8 @@ import json
 
 NODE_WIDTH = 100
 NODE_HEIGHT = 50
-HORIZONTAL_GAP = 50   # espace entre deux nœuds côte à côte
-VERTICAL_GAP = 80     # espace entre deux niveaux
+HORIZONTAL_GAP = 50
+VERTICAL_GAP = 50
 
 
 class home(ListView):
@@ -74,51 +74,20 @@ class WordDetailView(DetailView):
         levels_by_id = {}
         edges = set()
 
-        def add_node(w, level=0):
-            nodes[w.id] = {
-                'id': str(w.id),
-                'width': NODE_WIDTH,
-                'height': NODE_HEIGHT,
-                'data': {
-                    'label': w.word,
-                    'is_center': w.id == word.id,
-                },
-            }
-            levels_by_id[w.id] = level
+        add_node(word, 0, nodes, levels_by_id)
+        nodes[word.id]['data']['is_center'] = True
 
-        def add_edge(parent, child):
-            edges.add((str(parent.id), str(child.id)))
-
-        # Le mot central
-        add_node(word, level=0)
-
-        # --- Ancêtres : parents + grands-parents ---
-        parents = list(word.parents.all())
-        for parent in parents:
-            add_node(parent, level=-1)
-            add_edge(parent, word)
-
-            grandparents = parent.parents.all()
-            for gp in grandparents:
-                add_node(gp, level=-2)
-                add_edge(gp, parent)
-
-        # --- Descendants : enfants + petits-enfants ---
-        children = list(word.children.all())
-        for child in children:
-            add_node(child, level=1)
-            add_edge(word, child)
-
-            grandchildren = child.children.all()
-            for gc in grandchildren:
-                add_node(gc, level=2)
-                add_edge(child, gc)
+        collect_ancestors(word, nodes, levels_by_id, edges)
+        collect_descendants(word, nodes, levels_by_id, edges)
 
         compute_layout(nodes, levels_by_id)
 
         graph_data = {
             'nodes': list(nodes.values()),
-            'edges': [{'source': s, 'target': t} for s, t in edges],
+            'edges': [
+                {'from': str(s), 'to': str(t)}
+                for s, t in edges
+            ],
         }
 
         context['graph_data'] = json.dumps(graph_data, cls=DjangoJSONEncoder)
@@ -136,7 +105,7 @@ def compute_layout(nodes_by_id, levels_by_id):
     y_step = NODE_HEIGHT + VERTICAL_GAP
 
     for level, ids in ids_by_level.items():
-        ids.sort()  # ordre stable, tu peux trier autrement (alpha, etc.)
+        ids.sort()
         col_width = len(ids) * NODE_HEIGHT + (len(ids) - 1) * VERTICAL_GAP
         start_y = -col_width / 2
 
@@ -145,3 +114,45 @@ def compute_layout(nodes_by_id, levels_by_id):
             y = start_y + i * y_step
             nodes_by_id[node_id]['x'] = x
             nodes_by_id[node_id]['y'] = y
+
+def add_node(w, level, nodes, levels_by_id):
+    nodes[w.id] = {
+        'id': str(w.id),
+        'width': NODE_WIDTH,
+        'height': NODE_HEIGHT,
+        'data': {
+            'label': w.word,
+        },
+    }
+    if w.id not in levels_by_id:
+        levels_by_id[w.id] = level
+    elif level < 0:
+        levels_by_id[w.id] = min(levels_by_id[w.id], level)
+    else:
+        levels_by_id[w.id] = max(levels_by_id[w.id], level)
+
+def collect_ancestors(word, nodes, levels_by_id, edges, level=0, visited=None):
+    """Remonte récursivement tous les parents, sans limite de profondeur."""
+    if visited is None:
+        visited = set()
+    if word.id in visited:
+        return  # cycle détecté, on arrête cette branche
+    visited.add(word.id)
+
+    for parent in word.parents.all():
+        add_node(parent, level - 1, nodes, levels_by_id)
+        edges.add((parent.id, word.id))
+        collect_ancestors(parent, nodes, levels_by_id, edges, level - 1, visited)
+
+def collect_descendants(word, nodes, levels_by_id, edges, level=0, visited=None):
+    """Descend récursivement tous les enfants, sans limite de profondeur."""
+    if visited is None:
+        visited = set()
+    if word.id in visited:
+        return
+    visited.add(word.id)
+
+    for child in word.children.all():
+        add_node(child, level + 1, nodes, levels_by_id)
+        edges.add((word.id, child.id))
+        collect_descendants(child, nodes, levels_by_id, edges, level + 1, visited)
