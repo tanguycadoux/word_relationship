@@ -125,7 +125,7 @@ def add_node(w, nodes):
         'id': str(w.id),
         'width': NODE_WIDTH,
         'height': NODE_HEIGHT,
-        'data': {'label': w.word},
+        'data': {'label': w.word, 'language': w.language.name},
     }
 
 

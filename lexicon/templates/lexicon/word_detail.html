@@ -32,6 +32,6 @@
         const graphData = {{ graph_data|safe }};
 
         const container = document.getElementById('graph-container');
-        const graph = createWordGraph(container, graphData);
+        const { graph, legend } = createWordGraph(container, graphData);
     </script>
 {% endblock content %}

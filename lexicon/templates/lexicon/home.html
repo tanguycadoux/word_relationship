@@ -8,28 +8,28 @@
 
     {% url 'add_word' as add_word_url %}
     {% include 'lexicon/snippets/anchor_button.html' with url=add_word_url icon='add' text='Ajouter un mot' %}
-    
+
     <div id="graph-container" class="w-full h-96 border border-1 border-gray-400 rounded bg-white relative"></div>
 
     <script defer type="module">
         import { createWordGraph } from "{% static 'lexicon/js/word-graph/WordGraph.js' %}";
 
-        const graphData = {{ graph_data|safe }};
+        const graphData = {{ graph_data| safe }};
 
         console.log('Graph data:', graphData);
 
         const container = document.getElementById('graph-container');
-        const graph = createWordGraph(container, graphData);
+        const { graph, legend } = createWordGraph(container, graphData);
     </script>
 
     <ul class="list-disc list-inside ml-4">
         {% for word in words %}
-            <li>
-                <a href="{% url 'word_detail' word.id %}" class="text-blue-500 hover:underline">
-                    {{ word.word }}
-                </a>
-                ({{ word.language.name }})
-            </li>
+        <li>
+            <a href="{% url 'word_detail' word.id %}" class="text-blue-500 hover:underline">
+                {{ word.word }}
+            </a>
+            ({{ word.language.name }})
+        </li>
         {% endfor %}
     </ul>
 {% endblock content %}
