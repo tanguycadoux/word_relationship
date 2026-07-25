@@ -16,8 +16,6 @@
 
         const graphData = {{ graph_data| safe }};
 
-        console.log('Graph data:', graphData);
-
         const container = document.getElementById('graph-container');
         const { graph, legend } = createWordGraph(container, graphData);
     </script>

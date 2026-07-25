@@ -30,7 +30,6 @@ export function createWordGraph(container, graphData) {
 
     const graph = new Graph(container, { nodes: nodes, links: links, renderNode: renderWordNode });
 
-    console.log(languageColors);
     const legend = new WordGraphLegend(container, languageColors);
     legend.render();
 
@@ -39,7 +38,7 @@ export function createWordGraph(container, graphData) {
         graph.centerOnNode(centerNode.id);
     }
     else {
-        // center around all nodes
+        graph.fitToNodes();
     }
 
     // const grid = new DebugGrid(graph._viewportGroup, { spacing: 50, extent: 2000 });

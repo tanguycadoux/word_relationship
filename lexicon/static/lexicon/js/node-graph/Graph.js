@@ -67,6 +67,30 @@ export class Graph {
         }
         this.centerOnCoordinates(node.x + node.width / 2, node.y + node.height / 2, options);
     }
+    fitToNodes({ padding = 0.9 } = {}) {
+        const bounds = this._graphState.getBounds();
+        if (!bounds) return;
+
+        const boundsWidth = bounds.maxX - bounds.minX;
+        const boundsHeight = bounds.maxY - bounds.minY;
+
+        const centerX = (bounds.minX + bounds.maxX) / 2;
+        const centerY = (bounds.minY + bounds.maxY) / 2;
+
+        const rect = this._svg.getBoundingClientRect();
+
+        let zoom;
+        if (boundsWidth === 0 && boundsHeight === 0) {
+            zoom = 1;
+        }
+        else {
+            const zoomX = rect.width / boundsWidth;
+            const zoomY = rect.height / boundsHeight;
+            zoom = Math.min(zoomX, zoomY) * padding;
+        }
+
+        this.centerOnCoordinates(centerX, centerY, { zoom });
+    }
     centerOnCoordinates(x, y, options) { this._viewport.centerOn(x, y, options); }
     resetView() { this._viewport.reset(); }
     setZoom(zoom) { this._viewport.setZoom(zoom); }

@@ -106,6 +106,23 @@ export class GraphState extends EventTarget {
         return Array.from(this.links.values());
     }
 
+    getBounds() {
+        const nodes = this.getAllNodes();
+        if (nodes.length === 0) return null;
+
+        let minX = Infinity, minY = Infinity;
+        let maxX = -Infinity, maxY = -Infinity;
+
+        for (const node of nodes) {
+            minX = Math.min(minX, node.x);
+            minY = Math.min(minY, node.y);
+            maxX = Math.max(maxX, node.x + node.width);
+            maxY = Math.max(maxY, node.y + node.height);
+        }
+
+        return { minX, minY, maxX, maxY };
+    }
+
     // Émet un événement à chaque changement, pour que Renderer sache se mettre à jour
     _notifyChange(type, payload) {
         this.dispatchEvent(new CustomEvent(type, payload));
