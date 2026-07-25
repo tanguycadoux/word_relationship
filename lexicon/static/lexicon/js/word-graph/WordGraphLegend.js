@@ -23,8 +23,10 @@ export class WordGraphLegend {
         this.el.style.flexDirection = 'column';
         this.el.style.gap = '4px';
         this.el.style.padding = '8px';
-        this.el.style.background = 'rgba(255, 255, 255, 0.85)';
+        this.el.style.background = 'rgba(255, 255, 255, 65%)';
+        this.el.style.border = '1px solid #ddd';
         this.el.style.borderRadius = '4px';
+        this.el.style.backdropFilter = 'blur(8px)';
         this.el.style.fontFamily = 'sans-serif';
         this.el.style.fontSize = '12px';
 

@@ -14,3 +14,4 @@
 
 export { Graph } from './Graph.js';
 export { getNodeAnchor } from './core/nodeGeometry.js';
+export { horizontalBezierLinkPath } from './core/linkPaths.js';

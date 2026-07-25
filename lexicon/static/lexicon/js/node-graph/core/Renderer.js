@@ -1,5 +1,6 @@
 import { linkKey } from './linkKey.js';
 import { getNodeAnchor } from './nodeGeometry.js';
+import { straightLinkPath } from './linkPaths.js'
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -125,29 +126,16 @@ export class Renderer {
     // --- Création/suppression des éléments DOM : liens ---
 
     _createLinkElement(link) {
-        const sourceNode = this._graphState.getNode(link.from);
-        const targetNode = this._graphState.getNode(link.to);
-        if (!sourceNode || !targetNode) {
-            console.warn(`Cannot create link element: source or target node not found.`);
-            return;
-        }
-
-        const el = document.createElementNS(SVG_NS, 'line');
-        const endpoints = this._getLinkEndpoints(link);
-        if (!endpoints) {
-            console.warn(`Cannot create link element: invalid endpoints.`);
-            return;
-        }
-
-        el.setAttribute('x1', endpoints.x1);
-        el.setAttribute('y1', endpoints.y1);
-        el.setAttribute('x2', endpoints.x2);
-        el.setAttribute('y2', endpoints.y2);
-        el.setAttribute('stroke', '#888');
+        const el = document.createElementNS(SVG_NS, 'path');
+        el.classList.add('node-graph-link');
+        el.setAttribute('fill', 'none');
+        el.setAttribute('stroke', '#666');
         el.setAttribute('stroke-width', 2);
 
-        this._linksGroup.append(el);
+        this._linksGroup.appendChild(el);
         this._linkElements.set(linkKey(link.from, link.to), el);
+
+        this._updateLinkElement(link);
     }
     _getLinkEndpoints(link) {
         const fromNode = this._graphState.getNode(link.from);
@@ -180,17 +168,16 @@ export class Renderer {
         const el = this._linkElements.get(linkKey(link.from, link.to));
         if (!el) return;
 
-        const fromNode = this._graphState.getNode(link.from);
-        const toNode = this._graphState.getNode(link.to);
-        if (!fromNode || !toNode) return;
-
         const endpoints = this._getLinkEndpoints(link);
         if (!endpoints) return;
 
-        el.setAttribute('x1', endpoints.x1);
-        el.setAttribute('y1', endpoints.y1);
-        el.setAttribute('x2', endpoints.x2);
-        el.setAttribute('y2', endpoints.y2);
+        el.setAttribute('d', this._getLinkPath(endpoints));
+    }
+    _getLinkPath(endpoints) {
+        if (this._options.getLinkPath) {
+            return this._options.getLinkPath(endpoints);
+        }
+        return straightLinkPath(endpoints);
     }
     _removeLinkElement(link) {
         const key = linkKey(link.from, link.to);
