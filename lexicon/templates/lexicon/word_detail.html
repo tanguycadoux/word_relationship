@@ -27,30 +27,11 @@
     <div id="graph-container" class="w-full h-96 border border-1 border-gray-400 rounded bg-white relative"></div>
 
     <script defer type="module">
-        import { Graph } from "{% static 'lexicon/js/node-graph/Graph.js' %}";
-        // import { DebugGrid } from "{% static 'lexicon/js/node-graph/core/DebugGrid.js' %}";
-        // import { DebugControls } from "{% static 'lexicon/js/node-graph/core/DebugControls.js' %}";
+        import { createWordGraph } from "{% static 'lexicon/js/word-graph/WordGraph.js' %}";
 
         const graphData = {{ graph_data|safe }};
-        console.log("Graph data:", graphData);
-
-        const nodes = graphData.nodes;
-        const edges = graphData.edges;
-
-        console.log(edges);
 
         const container = document.getElementById('graph-container');
-        const graph = new Graph(container, { nodes: nodes, links: edges });
-
-        // const grid = new DebugGrid(graph._viewportGroup, { spacing: 50, extent: 2000 });
-        // const controls = new DebugControls(container, graph._viewport);
-
-        // grid.render();
-        // controls.render();
-
-        const centerNode = nodes.find(n => n.data.is_center);
-        if (centerNode) {
-            graph.centerOnNode(centerNode.id);
-        }
+        const graph = createWordGraph(container, graphData);
     </script>
 {% endblock content %}
