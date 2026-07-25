@@ -1,3 +1,5 @@
+import { ensureRelativePosition } from './domUtils';
+
 /**
  * DebugControls
  * -------------
@@ -21,9 +23,7 @@ export class DebugControls {
 
     /** Construit et insère l'overlay dans le conteneur. */
     render() {
-        if (getComputedStyle(this.container).position === 'static') {
-            this.container.style.position = 'relative';
-        }
+        ensureRelativePosition(this.container);
 
         this.el = document.createElement('div');
 

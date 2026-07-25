@@ -1,3 +1,5 @@
+import { OVERLAY_MARKER_CLASS } from './domUtils.js';
+
 export class InteractionManager {
     /**
      * @param {HTMLElement} container
@@ -40,6 +42,8 @@ export class InteractionManager {
     // --- Pan ---
 
     _handleMouseDown(event) {
+        if (event.target.closest(`.${OVERLAY_MARKER_CLASS}`)) return;
+
         event.preventDefault();
 
         const nodeEl = event.target.closest('[data-node-id]');
@@ -68,17 +72,20 @@ export class InteractionManager {
                 worldPos.x - this._dragOffsetX,
                 worldPos.y - this._dragOffsetY
             );
+            document.body.style.cursor = 'grabbing';
             return;
         }
 
 
         if (this._isPanning) {
             this._viewport.panBy(dx, dy);
+            document.body.style.cursor = 'move';
         }
     }
     _handleMouseUp(event) {
         this._isPanning = false;
         this._draggingNodeId = null;
+        document.body.style.cursor = 'default';
     }
 
     _startPan(event) {

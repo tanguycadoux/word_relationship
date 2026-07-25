@@ -1,3 +1,5 @@
+import { ensureRelativePosition, markAsOverlay } from "../node-graph/index.js";
+
 export class WordGraphLegend {
     /**
      * @param {HTMLElement} container
@@ -10,11 +12,10 @@ export class WordGraphLegend {
     }
 
     render() {
-        if (getComputedStyle(this.container).position === 'static') {
-            this.container.style.position = 'relative';
-        }
+        ensureRelativePosition(this.container);
 
         this.el = document.createElement('div');
+        markAsOverlay(this.el);
         this.el.style.position = 'absolute';
         this.el.style.bottom = '8px';
         this.el.style.left = '8px';
