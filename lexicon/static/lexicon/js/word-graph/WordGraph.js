@@ -1,8 +1,9 @@
 // import { DebugGrid } from "{% static 'lexicon/js/node-graph/core/DebugGrid.js' %}";
 // import { DebugControls } from "{% static 'lexicon/js/node-graph/core/DebugControls.js' %}";
-import { Graph } from '../node-graph/Graph.js';
+import { Graph, getNodeAnchor } from '../node-graph/index.js';
 import { renderWordNode } from './renderWordNode.js';
-import { WordGraphLegend } from './WordGraphLegend.js';
+import { getWordLinkEndpoints } from './wordLinkEndpoints.js';
+import { WordGraphLegend } from './WordGraphLegend.js'
 
 /**
  * @param {HTMLElement} container
@@ -28,7 +29,11 @@ export function createWordGraph(container, graphData) {
         }
     });
 
-    const graph = new Graph(container, { nodes: nodes, links: links, renderNode: renderWordNode });
+    const graph = new Graph(container, {
+        nodes: nodes, links: links,
+        renderNode: renderWordNode,
+        getLinkEndpoints: getWordLinkEndpoints,
+    });
 
     const legend = new WordGraphLegend(container, languageColors);
     legend.render();

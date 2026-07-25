@@ -1,4 +1,5 @@
 import { linkKey } from './linkKey.js';
+import { getNodeAnchor } from './nodeGeometry.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -153,10 +154,19 @@ export class Renderer {
         const toNode = this._graphState.getNode(link.to);
         if (!fromNode || !toNode) return null;
 
+        if (this._options.getLinkEndpoints) {
+            return this._options.getLinkEndpoints(link, fromNode, toNode);
+        }
+
         return {
             x1: fromNode.x + fromNode.width / 2, y1: fromNode.y + fromNode.height / 2,
             x2: toNode.x + toNode.width / 2, y2: toNode.y + toNode.height / 2,
         };
+    }
+    _defaultGetLinkEndpoints(fromNode, toNode) {
+        const start = getNodeAnchor(fromNode, 'center');
+        const end = getNodeAnchor(toNode, 'center');
+        return { x1: start.x, y1: start.y, x2: end.x, y2: end.y };
     }
     _updateLinksForNode(nodeId) {
         const relatedLinks = this._graphState.getAllLinks().filter(

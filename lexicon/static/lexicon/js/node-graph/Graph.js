@@ -46,6 +46,7 @@ export class Graph {
         this._graphState = new GraphState({ nodes: options.nodes, links: options.links });
         this._renderer = new Renderer(this._viewportGroup, this._graphState, {
             renderNode: options.renderNode,
+            getLinkEndpoints: options.getLinkEndpoints,
         });
         this._interactionManager = new InteractionManager(this._container, this._viewport, this._graphState);
     }
